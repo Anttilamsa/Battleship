@@ -7,29 +7,27 @@ export default function Gameboard() {
     const START = 'plus';
     const CROSS = 'cross';
     const CIRCLE = 'circle';
-    let intialBoard = [
+    
+    let initialBoard = [
     START, START, START, START, START,
     START, START, START, START, START,
     START, START, START, START, START,
     START, START, START, START, START,
     START, START, START, START, START];
 
-    const [board, setBoard] = useState(intialBoard);
-    const [boatsOne, setBoatsOne] = useState();
-    const [boatsTwo, setBoatsTwo] = useState();
-    const [boatsTree, setBoatsTree] = useState();
+    const [board, setBoard] = useState(initialBoard);
     const [bombs, setBombs] = useState(15);
-    const [ships, setShips] = useState(3);
+    const [shipsRemaining, setShipsRemaining] = useState(3);
     const [hits, setHits] = useState(0);
     const [status, setStatus] = useState("Game has not started");
     const [seconds, setSeconds] = useState(0);
     const timerRef = useRef();
     const [isToggleOn,setToggleOn] = useState(true);
-
+    const [ships, setShips] = useState([]);
 
     useEffect(() => { 
         winGame();
-    }, [seconds,ships,bombs,hits])
+    }, [seconds,shipsRemaining,bombs,hits])
 
     function start() {
         const id = setInterval(() => {
@@ -42,18 +40,18 @@ export default function Gameboard() {
         clearInterval(timerRef.current);
     }
 
-    function drawItem(number, id) {
+    function drawItem(number) {
         if(status != "Game is on..."){
             setStatus("Click the start button first...");
         }
-        else{
-            setBombs(bombs -1);        
+        else{      
             if(board[number] === START) {
-                console.log(board[number]);
-                if(number === boatsOne || number === boatsTwo || number === boatsTree) { 
+                setBombs(bombs -1);  
+                console.log(number);
+                if(ships.includes(number) == 1) { 
                 console.log("Osuma!");
                 board[number] = CIRCLE;
-                setShips(ships -1);
+                setShipsRemaining(shipsRemaining -1);
                 setHits(hits +1);
             }
             else{
@@ -63,8 +61,21 @@ export default function Gameboard() {
     }  
 }
 
+    function randomShips() {
+        for(let i=0; i< 3; i++){
+        let randomShip = Math.floor(Math.random() * initialBoard.length);
+            if (ships.includes(randomShip) == true) {
+            i--;
+        }
+        else {
+          ships.push(randomShip);
+          console.log(ships);
+        }
+      }
+    }
+
     function winGame() {
-            if (ships == 0){
+            if (shipsRemaining == 0){
                 setStatus("You sinked all ships.");
                 stop();
             }
@@ -98,34 +109,22 @@ export default function Gameboard() {
             return "#74B9FF"
         }
     }
+
     function resetGame() {
         stop();
         setSeconds(0);
         setStatus("Game has been reseted.");
-        setShips(3);
+        setShipsRemaining(3);
         setBombs(15);
         setHits(0);
-        setBoard(intialBoard);
+        setBoard(initialBoard);
+        setShips([]);
     }
+
     function startGame(){
+        randomShips();
         start();
         setStatus("Game is on...");
-        let boats1 = Math.floor(Math.random() * board.length);
-        let boats2 = Math.floor(Math.random() * board.length);
-        let boats3 = Math.floor(Math.random() * board.length);
-        if(boats2 === boats1 || boats2 === boats3){
-            boats2 = Math.floor(Math.random() * board.length);
-        }
-        else if(boats3 === boats2 || boats3 === boats1) {
-            boats3 = Math.floor(Math.random() * board.length);
-        }
-        else{
-            setBoatsOne(boats1);
-            setBoatsTwo(boats2);
-            setBoatsTree(boats3);
-            setShips(3);
-            console.log(boats1,boats2, boats3);
-        }
     }
 
     return (
@@ -218,7 +217,7 @@ export default function Gameboard() {
             <Pressable style={StyleSheet.button} onPress={() => handleClick()}>
                 <Text style={StyleSheet.buttonText}>{isToggleOn ? "Start game" : "New game"}</Text>
             </Pressable>
-            <Text style={StyleSheet.gameinfo}>Hits: {hits} Bombs: {bombs} Ships: {ships}</Text>
+            <Text style={StyleSheet.gameinfo}>Hits: {hits} Bombs: {bombs} Ships: {shipsRemaining}</Text>
             <Text style={StyleSheet.gameinfo}>Time: {seconds} </Text>
             <Text style={StyleSheet.gameinfo}>Status: {status}</Text>
         </View>
